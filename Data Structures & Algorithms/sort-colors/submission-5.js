@@ -1,0 +1,49 @@
+class Solution {
+
+    /**
+     * @param {number[]} nums
+     * @return {void} Do not return anything, modify nums in-place instead.
+     */
+
+    sortColors(nums) {
+        let l = 0, r = nums.length - 1;
+        let i = 0;
+
+        while (i <= r) { // we are done when i passes r. i evaluates every element & r only moves left when 2 is swapped (everything on right of r will be 2s/Out of bounds aka ALREADY EVALUATED. We know i evaluates every index, so after r is evaluated by i, then every index has been evaluated & we are done.)(After i evaluates r, & therefore passes r, everything has been evaluated & we are done. Bc everything to right of r already evaluated.) 
+        // so might look like [0,0,1,1,i,r,2] when i passes r we are done.
+
+            if (nums[i] === 0) {
+                [nums[l], nums[i]] = [nums[i], nums[l]]
+                l++; 
+                // don't do i-- ❌❌❌❌
+                // // No need to re-evaluate i after swapping l and i because if l < i,
+                // nums[l] is always a 1 that has already been evaluated and is already in
+                // the correct middle region. 🩷🩷Unlike r, l only points to an already-evaluated
+                // value. If l === i, we are simply swapping the 0 with itself.
+            }
+
+            //⭐everything to left of l & right of r has already been evaluated.⭐
+            //---🩷🩷Unlike r, l only points to an already-evaluated value.
+
+            //only when we encounter 0 or 2 do we put them in their proper place.
+            //--- l stays when don’t encounter 0
+            //--- r stays when don’t encounter 2
+
+            if (nums[i] === 2) {
+                [nums[i], nums[r]] = [nums[r], nums[i]]
+                r--;
+                i--; // 🩷🩷To prevent i from moving on & potentially skipping a 0 (that was swapped there when i encountered a 2)
+            }
+
+            i++;
+        }
+
+        //--- 🩷🩷Example of i accidentally skipping 0
+        //don't increment i when encounter 2
+        //---- bc we swap r with i then i+=1 & r-=1
+        //---- r could have been 0 & i was 2, so we swapped them making i=0 and r=2
+        //---------------Then i+=1, so we potentially skipped putting a 0 on the left side
+        //---------------Don't increment i, so that we go over that 0 in the next iteration & put it on the left side 👍
+    }
+
+}
