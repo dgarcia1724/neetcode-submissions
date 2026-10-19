@@ -1,0 +1,116 @@
+class Solution {
+    /**
+     * @param {string[][]} accounts
+     * @return {string[][]}
+     */
+    accountsMerge(accounts) {
+        const uf = new UnionFind();
+        const emailToAccountIndex = new Map();
+
+        // "I'll use account indices as nodes. ⭐⭐⭐
+        // If two accounts share an email, I'll merge their accountIndexes so they share one root for one group."
+        for (let i = 0; i < accounts.length; i++) {
+            // "I'll skip index 0 because it contains the name."
+            for (let j = 1; j < accounts[i].length; j++) {
+                const email = accounts[i][j];
+
+                
+                // Duplicate emails not added to emailToAccountIndex, their accountIndexes are merged in uf.
+                    // "If I've seen this email before, both accounts
+                    // belong to the same person."
+                // we will later find root of accountIndex for duplicate emails 🩷🩷🩷🩷🩷
+                if (emailToAccountIndex.has(email)) {
+                    uf.union(i, emailToAccountIndex.get(email));
+                } else {
+                    // "I'll record an account index for this email."
+                    // do this after check, bc check needs to look at previously added accountIndex
+                    // ----- Otherwise, there might have been duplicate email that we were supposed to union,
+                    // ----- but instead we just merged same node to itself in uf. 🤦‍♂️🤦‍♂️🤦‍♂️
+                    emailToAccountIndex.set(email, i);
+                }
+
+            }
+        }
+
+        const accountToEmails = new Map();
+
+        // "I'll visit each unique email and find its account's root. 🩷🩷🩷🩷🩷
+        // Accounts with the same root belong in the same merged account." ⭐⭐⭐
+        for (const [email, accountIndex] of emailToAccountIndex) {
+            const root = uf.find(accountIndex);
+
+            if (!accountToEmails.has(root)) {
+                accountToEmails.set(root, []);
+            }
+
+            accountToEmails.get(root).push(email);
+        }
+
+        const res = [];
+
+        // "I'll sort each group's emails and put the owner's name first."
+        for (const [accountIndex, emails] of accountToEmails) {
+            const name = accounts[accountIndex][0];
+            emails.sort();
+            res.push([name, ...emails]);
+        }
+
+        return res;
+    }
+}
+
+// Uses your existing UnionFind class with find() and union().
+//
+// Time: O(T · α(A) + U log U).
+// Space: O(A + U).
+// A = number of accounts, T = total email occurrences,
+// U = number of unique emails. α(A) is effectively constant.
+
+class UnionFind {
+    constructor() {
+        // Node → immediate parent. Missing means it's its own root.
+        this.parents = new Map();
+
+        // Root → height estimate, starting at 1.
+        this.rank = new Map();
+    }
+
+    find(x) {
+        const parent = this.parents.get(x) ?? x;
+
+        if (x !== parent) {
+            // "I'll use path compression so future lookups
+            // go directly to the root."
+            const root = this.find(parent);
+            this.parents.set(x, root);
+            return root;
+        }
+
+        return x;
+    }
+
+    union(a, b) {
+        const rootA = this.find(a);
+        const rootB = this.find(b);
+
+        // "If the roots match, these emails are already connected."
+        if (rootA === rootB) return false;
+
+        const rankA = this.rank.get(rootA) ?? 1;
+        const rankB = this.rank.get(rootB) ?? 1;
+
+        // "I'll attach the lower-rank tree under the higher-rank tree."
+        if (rankA > rankB) {
+            this.parents.set(rootB, rootA);
+        } else if (rankB > rankA) {
+            this.parents.set(rootA, rootB);
+        } else {
+            // "For equal ranks, either root can become the parent.
+            // I'll increase the chosen root's rank."
+            this.parents.set(rootA, rootB);
+            this.rank.set(rootB, rankB + 1);
+        }
+
+        return true;
+    }
+}
